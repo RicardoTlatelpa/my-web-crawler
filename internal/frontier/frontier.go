@@ -3,6 +3,7 @@ package frontier
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -22,14 +23,20 @@ func New(brokerAddress, topic string) * Frontier {
 	}
 }
 
-func (f* Frontier) Enqueue(url string) {
-	err := f.writer.WriteMessages(context.Background(),
-		kafka.Message{
-			Key: []byte("url"),
-			Value: []byte(url),
-		},
-	)
-	if err != nil {
-		log.Printf("Failed to enqueue URL to Kafka: %v", err)
-	}
+func (f *Frontier) Enqueue(url string, priority int) {
+    msg := kafka.Message{
+        Key:   []byte("url"),
+        Value: []byte(url),
+        Headers: []kafka.Header{
+            {
+                Key:   "priority",
+                Value: []byte(strconv.Itoa(priority)),
+            },
+        },
+    }
+
+    err := f.writer.WriteMessages(context.Background(), msg)
+    if err != nil {
+        log.Printf("Kafka write failed: %v", err)
+    }
 }
