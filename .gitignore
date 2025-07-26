@@ -1,0 +1,13 @@
+# Go build output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go bin and pkg directories
+/bin/
+/pkg/
+my_web_crawler
