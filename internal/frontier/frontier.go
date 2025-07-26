@@ -1,22 +1,35 @@
 package frontier
 
-import "sync"
+import (
+	"context"
+	"log"
+
+	"github.com/segmentio/kafka-go"
+)
 
 type Frontier struct {
-	visited map[string] bool
-	queue []string
-	mu sync.Mutex
+	writer *kafka.Writer
 }
 
-func New() *Frontier {
+func New(brokerAddress, topic string) * Frontier {
+	writer := kafka.NewWriter(kafka.WriterConfig{
+		Brokers: []string{brokerAddress},
+		Topic: topic,
+		Balancer: &kafka.LeastBytes{},
+	})
 	return &Frontier{
-		visited: make(map[string]bool),
-		queue: make([]string, 0),
+		writer: writer,
 	}
 }
 
-func (f *Frontier) Enqueue(url string) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	
+func (f* Frontier) Enqueue(url string) {
+	err := f.writer.WriteMessages(context.Background(),
+		kafka.Message{
+			Key: []byte("url"),
+			Value: []byte(url),
+		},
+	)
+	if err != nil {
+		log.Printf("Failed to enqueue URL to Kafka: %v", err)
+	}
 }
